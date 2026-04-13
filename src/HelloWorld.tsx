@@ -1,75 +1,106 @@
-import { zColor } from "@remotion/zod-types";
+import React, { useState } from 'react';
 import {
   AbsoluteFill,
-  interpolate,
-  Sequence,
-  spring,
-  useCurrentFrame,
+  Video,
+  Audio,
+  staticFile,
   useVideoConfig,
-} from "remotion";
-import { z } from "zod";
-import { Logo } from "./HelloWorld/Logo";
-import { Subtitle } from "./HelloWorld/Subtitle";
-import { Title } from "./HelloWorld/Title";
+} from 'remotion';
+import { z } from 'zod';
 
 export const myCompSchema = z.object({
-  titleText: z.string(),
-  titleColor: zColor(),
-  logoColor1: zColor(),
-  logoColor2: zColor(),
+  koreanText: z.string(),
+  hebrewText: z.string(),
+  videoFileName: z.string().optional().default(''),
+  audioFileName: z.string().optional().default('narration.mp3'),
 });
 
 export const HelloWorld: React.FC<z.infer<typeof myCompSchema>> = ({
-  titleText: propOne,
-  titleColor: propTwo,
-  logoColor1,
-  logoColor2,
+  koreanText,
+  hebrewText,
+  videoFileName = '',
+  audioFileName = 'narration.mp3',
 }) => {
-  const frame = useCurrentFrame();
-  const { durationInFrames, fps } = useVideoConfig();
+  const { width, height } = useVideoConfig();
 
-  // Animate from 0 to 1 after 25 frames
-  const logoTranslationProgress = spring({
-    frame: frame - 25,
-    fps,
-    config: {
-      damping: 100,
-    },
-  });
+  // 비디오/오디오 로드 실패 시 무시하고 fallback으로 전환
+  const [videoError, setVideoError] = useState(false);
+  const [audioError, setAudioError] = useState(false);
 
-  // Move the logo up by 150 pixels once the transition starts
-  const logoTranslation = interpolate(
-    logoTranslationProgress,
-    [0, 1],
-    [0, -150],
-  );
+  const hasVideo = !videoError && typeof videoFileName === 'string' && videoFileName.trim() !== '';
+  const hasAudio = !audioError && typeof audioFileName === 'string' && audioFileName.trim() !== '';
 
-  // Fade out the animation at the end
-  const opacity = interpolate(
-    frame,
-    [durationInFrames - 25, durationInFrames - 15],
-    [1, 0],
-    {
-      extrapolateLeft: "clamp",
-      extrapolateRight: "clamp",
-    },
-  );
-
-  // A <AbsoluteFill> is just a absolutely positioned <div>!
   return (
-    <AbsoluteFill style={{ backgroundColor: "white" }}>
-      <AbsoluteFill style={{ opacity }}>
-        <AbsoluteFill style={{ transform: `translateY(${logoTranslation}px)` }}>
-          <Logo logoColor1={logoColor1} logoColor2={logoColor2} />
-        </AbsoluteFill>
-        {/* Sequences can shift the time for its children! */}
-        <Sequence from={35}>
-          <Title titleText={propOne} titleColor={propTwo} />
-        </Sequence>
-        {/* The subtitle will only enter on the 75th frame. */}
-        <Sequence from={75}>
-          <Subtitle />
-        </Sequence>
+    <AbsoluteFill style={{ backgroundColor: '#000', width, height }}>
+      {/* 나레이션 오디오 */}
+      {hasAudio && (
+        <Audio
+          src={staticFile(audioFileName)}
+          onError={() => setAudioError(true)}
+        />
+      )}
+
+      {/* 배경 레이어 */}
+      {hasVideo ? (
+        <Video
+          src={staticFile(videoFileName)}
+          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          muted
+          onError={() => setVideoError(true)}
+        />
+      ) : (
+        /* 그라데이션 배경 (파일 없거나 오류 시) */
+        <AbsoluteFill
+          style={{
+            background:
+              'linear-gradient(135deg, #0a0a1a 0%, #1a0a2e 40%, #0d1a10 100%)',
+          }}
+        />
+      )}
+
+      {/* 자막 레이어 */}
+      <AbsoluteFill
+        style={{
+          justifyContent: 'flex-end',
+          alignItems: 'center',
+          paddingBottom: 80,
+          flexDirection: 'column',
+          gap: 16,
+        }}
+      >
+        {/* 히브리어 */}
+        <div
+          style={{
+            color: '#FFD700',
+            fontSize: 60,
+            fontWeight: 900,
+            textShadow: '0 4px 16px rgba(0,0,0,0.9)',
+            direction: 'rtl',
+            textAlign: 'center',
+            padding: '0 60px',
+            lineHeight: 1.4,
+          }}
+        >
+          {hebrewText}
+        </div>
+
+        {/* 한국어 */}
+        <div
+          style={{
+            color: 'white',
+            fontSize: 40,
+            fontWeight: 'bold',
+            background: 'rgba(0,0,0,0.6)',
+            padding: '10px 44px',
+            borderRadius: 50,
+            textShadow: '0 2px 8px rgba(0,0,0,0.8)',
+            textAlign: 'center',
+            maxWidth: '85%',
+            lineHeight: 1.5,
+          }}
+        >
+          {koreanText}
+        </div>
       </AbsoluteFill>
     </AbsoluteFill>
   );
