@@ -3,6 +3,7 @@ import {
   AbsoluteFill,
   Video,
   Audio,
+  Img,
   staticFile,
   useVideoConfig,
 } from 'remotion';
@@ -15,6 +16,14 @@ export const myCompSchema = z.object({
   audioFileName: z.string().optional().default('narration.mp3'),
 });
 
+function isImageFile(name: string): boolean {
+  return /\.(png|jpg|jpeg|webp|gif)$/i.test(name);
+}
+
+function isVideoFile(name: string): boolean {
+  return /\.(mp4|webm|mov|avi)$/i.test(name);
+}
+
 export const HelloWorld: React.FC<z.infer<typeof myCompSchema>> = ({
   koreanText,
   hebrewText,
@@ -23,12 +32,14 @@ export const HelloWorld: React.FC<z.infer<typeof myCompSchema>> = ({
 }) => {
   const { width, height } = useVideoConfig();
 
-  // 비디오/오디오 로드 실패 시 무시하고 fallback으로 전환
-  const [videoError, setVideoError] = useState(false);
+  const [mediaError, setMediaError] = useState(false);
   const [audioError, setAudioError] = useState(false);
 
-  const hasVideo = !videoError && typeof videoFileName === 'string' && videoFileName.trim() !== '';
+  const fileName = typeof videoFileName === 'string' ? videoFileName.trim() : '';
   const hasAudio = !audioError && typeof audioFileName === 'string' && audioFileName.trim() !== '';
+  const hasMedia = !mediaError && fileName !== '';
+  const showImage = hasMedia && isImageFile(fileName);
+  const showVideo = hasMedia && isVideoFile(fileName);
 
   return (
     <AbsoluteFill style={{ backgroundColor: '#000', width, height }}>
@@ -41,12 +52,18 @@ export const HelloWorld: React.FC<z.infer<typeof myCompSchema>> = ({
       )}
 
       {/* 배경 레이어 */}
-      {hasVideo ? (
+      {showVideo ? (
         <Video
-          src={staticFile(videoFileName)}
+          src={staticFile(fileName)}
           style={{ width: '100%', height: '100%', objectFit: 'cover' }}
           muted
-          onError={() => setVideoError(true)}
+          onError={() => setMediaError(true)}
+        />
+      ) : showImage ? (
+        <Img
+          src={staticFile(fileName)}
+          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          onError={() => setMediaError(true)}
         />
       ) : (
         /* 그라데이션 배경 (파일 없거나 오류 시) */
