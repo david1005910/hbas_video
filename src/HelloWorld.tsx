@@ -110,20 +110,18 @@ export const HelloWorld: React.FC<z.infer<typeof myCompSchema>> = ({
         />
       )}
 
-      {/* ── 자막 영역 (하단 고정) ─────────────────────────── */}
-      <AbsoluteFill
-        style={{
-          justifyContent: 'flex-end',
-          alignItems: 'stretch',
-          flexDirection: 'column',
-        }}
-      >
-        {/* 히브리어 — 구절 기반 타이밍으로 전환 */}
+      {/* ── 자막 영역 — 절대 위치로 고정 (한국어 유무와 무관) ── */}
+      <AbsoluteFill style={{ position: 'relative' }}>
+
+        {/* 히브리어 — bottom 120px 고정 (한국어 유무와 무관하게 항상 같은 위치) */}
         {displayHe ? (
           <div
             style={{
-              width: '100%',
-              padding: '16px 80px',
+              position: 'absolute',
+              bottom: 120,
+              left: 0,
+              right: 0,
+              padding: '0 80px',
               textAlign: 'center',
               direction: 'rtl',
             }}
@@ -145,12 +143,15 @@ export const HelloWorld: React.FC<z.infer<typeof myCompSchema>> = ({
           </div>
         ) : null}
 
-        {/* 한국어 — 히브리어 번역 또는 나레이션 동기화 */}
+        {/* 한국어 — 화면 맨 하단 고정 (bottom: 0) */}
         {displayKo ? (
           <div
             style={{
-              width: '100%',
-              padding: '16px 80px 32px',
+              position: 'absolute',
+              bottom: 0,
+              left: 0,
+              right: 0,
+              padding: '12px 80px 36px',
               textAlign: 'center',
             }}
           >
@@ -169,6 +170,7 @@ export const HelloWorld: React.FC<z.infer<typeof myCompSchema>> = ({
             </span>
           </div>
         ) : null}
+
       </AbsoluteFill>
     </AbsoluteFill>
   );
