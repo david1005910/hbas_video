@@ -84,6 +84,7 @@ export const HelloWorld: React.FC<z.infer<typeof myCompSchema>> = ({
       {hasAudio && (
         <Audio
           src={staticFile(audioFileName)}
+          loop={false}
           onError={() => setAudioError(true)}
         />
       )}
@@ -94,6 +95,7 @@ export const HelloWorld: React.FC<z.infer<typeof myCompSchema>> = ({
           src={staticFile(fileName)}
           style={{ width: '100%', height: '100%', objectFit: 'cover' }}
           muted
+          loop={false}
           onError={() => setMediaError(true)}
         />
       ) : showImage ? (
