@@ -6,7 +6,7 @@
  */
 import { createServer } from "http";
 import { exec } from "child_process";
-import { existsSync, readFileSync } from "fs";
+import { existsSync, readFileSync, unlinkSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 
@@ -37,6 +37,17 @@ createServer((req, res) => {
       return res.end(JSON.stringify({ error: "이미 렌더링 중입니다" }));
     }
 
+    // props 파일 존재 여부 확인
+    if (!existsSync(DATA_PATH)) {
+      res.writeHead(400, { "Content-Type": "application/json" });
+      return res.end(JSON.stringify({ error: "data.json 없음 — 스튜디오에서 먼저 전송하세요" }));
+    }
+
+    // 이전 렌더 결과 삭제 (stale 파일 방지)
+    if (existsSync(OUTPUT_PATH)) {
+      try { unlinkSync(OUTPUT_PATH); } catch {}
+    }
+
     renderState = { status: "rendering", error: null };
     const cmd = [
       "npx remotion render HelloWorld",
@@ -46,13 +57,15 @@ createServer((req, res) => {
       "--log=verbose",
     ].join(" ");
 
-    exec(cmd, { cwd: __dirname, timeout: 600_000 }, (err, _stdout, stderr) => {
+    exec(cmd, { cwd: __dirname, timeout: 600_000, maxBuffer: 10 * 1024 * 1024 }, (err, stdout, stderr) => {
       if (err) {
-        console.error("[RenderServer] error:", stderr);
-        renderState = { status: "error", error: stderr || err.message };
+        const errMsg = stderr || err.message;
+        console.error("[RenderServer] 렌더 실패\nSTDERR:", stderr);
+        if (stdout) console.error("[RenderServer] STDOUT:", stdout.slice(-2000));
+        renderState = { status: "error", error: errMsg };
       } else {
         renderState = { status: "done", error: null };
-        console.log("[RenderServer] render complete →", OUTPUT_PATH);
+        console.log("[RenderServer] 렌더 완료 →", OUTPUT_PATH);
       }
     });
 
