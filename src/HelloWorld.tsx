@@ -131,15 +131,13 @@ export const HelloWorld: React.FC<z.infer<typeof myCompSchema>> = ({
             <span
               style={{
                 color: '#F5C842',
-                fontSize: 66,
+                fontSize: 58,
                 fontWeight: 900,
                 textShadow: '0 2px 12px rgba(0,0,0,0.95), 0 0 30px rgba(0,0,0,0.7)',
                 lineHeight: 1.45,
                 letterSpacing: '0.03em',
-                whiteSpace: 'pre-wrap',
-                overflowWrap: 'break-word',
-                display: 'inline-block',
-                maxWidth: '100%',
+                whiteSpace: 'nowrap',
+                display: 'block',
               }}
             >
               {displayHe}
