@@ -161,6 +161,8 @@ export const HelloWorld: React.FC<z.infer<typeof myCompSchema>> = ({
                 fontWeight: 700,
                 textShadow: '0 2px 10px rgba(0,0,0,0.95), 0 0 30px rgba(0,0,0,0.7)',
                 lineHeight: 1.5,
+                whiteSpace: 'nowrap',
+                display: 'block',
               }}
             >
               {displayKo}
