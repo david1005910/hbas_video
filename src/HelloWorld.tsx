@@ -140,7 +140,7 @@ export const HelloWorld: React.FC<z.infer<typeof myCompSchema>> = ({
           <div
             style={{
               position: 'absolute',
-              bottom: 150,
+              bottom: 165,
               left: 0,
               right: 0,
               padding: '0 80px',
@@ -151,7 +151,7 @@ export const HelloWorld: React.FC<z.infer<typeof myCompSchema>> = ({
             <span
               style={{
                 color: '#F5C842',
-                fontSize: 72,
+                fontSize: 84,
                 fontWeight: 900,
                 textShadow: '0 2px 12px rgba(0,0,0,0.95), 0 0 30px rgba(0,0,0,0.7)',
                 lineHeight: 1.45,
