@@ -33,6 +33,24 @@ function isVideoFile(name: string): boolean {
   return /\.(mp4|webm|mov|avi)$/i.test(name);
 }
 
+/** 니쿠드·칸틸레이션 제거 후 자음 수 기준으로 한 줄 최대 30자에서 단어 경계로 자름 */
+const HE_DISPLAY_MAX = 30;
+function trimHebrewToLine(text: string): string {
+  if (!text) return text;
+  const stripNiqqud = (t: string) => t.replace(/[\u0591-\u05C7]/g, '');
+  if (stripNiqqud(text).replace(/\s/g, '').length <= HE_DISPLAY_MAX) return text;
+  const words = text.split(/\s+/);
+  let result = '';
+  let count = 0;
+  for (const word of words) {
+    const wLen = stripNiqqud(word).length;
+    if (count > 0 && count + wLen > HE_DISPLAY_MAX) break;
+    result = result ? `${result} ${word}` : word;
+    count += wLen;
+  }
+  return result || words[0]; // 첫 단어가 30자 초과해도 최소 1단어는 표시
+}
+
 export const HelloWorld: React.FC<z.infer<typeof myCompSchema>> = ({
   koreanText,
   hebrewText,
@@ -72,11 +90,13 @@ export const HelloWorld: React.FC<z.infer<typeof myCompSchema>> = ({
   const displayKo = currentSub ? currentSub.text : (subs.length === 0 ? koreanText : '');
   // 자막 있을 때: 현재 구간 heText → 갭이면 직전 heText → 없으면 빈 문자열
   // 자막 없을 때: static hebrewText
-  const displayHe = subs.length === 0
+  const rawHe = subs.length === 0
     ? hebrewText
     : currentSub !== undefined
       ? (currentSub.heText ?? '')
       : (prevSub?.heText ?? '');
+  // 30자 초과 시 단어 경계에서 잘라냄 (구 데이터 호환)
+  const displayHe = trimHebrewToLine(rawHe);
 
   return (
     <AbsoluteFill style={{ backgroundColor: '#000', width, height }}>
