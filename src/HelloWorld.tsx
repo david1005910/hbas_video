@@ -115,12 +115,12 @@ export const HelloWorld: React.FC<z.infer<typeof myCompSchema>> = ({
       {/* ── 자막 영역 — 절대 위치로 고정 (한국어 유무와 무관) ── */}
       <AbsoluteFill style={{ position: 'relative' }}>
 
-        {/* 히브리어 — bottom 120px 고정 (한국어 유무와 무관하게 항상 같은 위치) */}
+        {/* 히브리어 — bottom 150px 고정 (한국어 유무와 무관하게 항상 같은 위치) */}
         {displayHe ? (
           <div
             style={{
               position: 'absolute',
-              bottom: 120,
+              bottom: 150,
               left: 0,
               right: 0,
               padding: '0 80px',
@@ -131,7 +131,7 @@ export const HelloWorld: React.FC<z.infer<typeof myCompSchema>> = ({
             <span
               style={{
                 color: '#F5C842',
-                fontSize: 58,
+                fontSize: 72,
                 fontWeight: 900,
                 textShadow: '0 2px 12px rgba(0,0,0,0.95), 0 0 30px rgba(0,0,0,0.7)',
                 lineHeight: 1.45,
@@ -160,7 +160,7 @@ export const HelloWorld: React.FC<z.infer<typeof myCompSchema>> = ({
             <span
               style={{
                 color: '#ffffff',
-                fontSize: 40,
+                fontSize: 52,
                 fontWeight: 700,
                 textShadow: '0 2px 10px rgba(0,0,0,0.95), 0 0 30px rgba(0,0,0,0.7)',
                 lineHeight: 1.5,
