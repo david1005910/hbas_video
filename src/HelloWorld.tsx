@@ -61,6 +61,8 @@ function isVideoFile(name: string): boolean {
 /** Sefaria 편집 주석·단락 기호·HTML 엔티티·유니코드 제어문자 제거 */
 function cleanHebrew(text: string): string {
   return text
+    // 히브리어 칸틸레이션 마크 (트로프/악센트, U+0591-U+05AF) — 폰트 미지원 → □ 원인
+    .replace(/[\u0591-\u05AF]/g, '')
     // 유니코드 양방향·방향 제어 문자 (□로 보이는 원인)
     .replace(/[\u200B-\u200F\u202A-\u202E\u2066-\u2069\uFEFF]/g, '')
     // 비표준 유니코드 공백 문자 → 일반 공백으로 정규화 (□로 렌더링되는 원인)
