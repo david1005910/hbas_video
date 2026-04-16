@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   AbsoluteFill,
   Video,
@@ -7,12 +7,34 @@ import {
   staticFile,
   useVideoConfig,
   useCurrentFrame,
+  delayRender,
+  continueRender,
 } from 'remotion';
+import logoSrc from './assets/logo.jpg';
+
+// ── Frank Rühl Libre 폰트 로드 (FontFace API 직접 사용 — 확실한 로드 보장) ──
+function useFrankRuhlLibre() {
+  const [handle] = useState(() => delayRender('Loading Frank Rühl Libre font'));
+  useEffect(() => {
+    const url700 = staticFile('FrankRuhlLibre-700.ttf');
+    const url900 = staticFile('FrankRuhlLibre-900.ttf');
+    const face700 = new FontFace('Frank Ruhl Libre', `url(${url700})`, { weight: '700', style: 'normal' });
+    const face900 = new FontFace('Frank Ruhl Libre', `url(${url900})`, { weight: '900', style: 'normal' });
+    Promise.all([
+      face700.load().then((f) => { document.fonts.add(f); }),
+      face900.load().then((f) => { document.fonts.add(f); }),
+    ]).then(() => continueRender(handle))
+      .catch((err) => { console.error('[Font] Frank Ruhl Libre 로드 실패:', err); continueRender(handle); });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+}
 import { z } from 'zod';
 
 export const myCompSchema = z.object({
   koreanText: z.string(),
   hebrewText: z.string(),
+  englishText: z.string().optional().default(''),
+  language: z.enum(['ko', 'en']).optional().default('ko'),
   videoFileName: z.string().optional().default(''),
   audioFileName: z.string().optional().default('narration.mp3'),
   subtitlesJson: z.string().optional().default(''),
@@ -54,10 +76,13 @@ function trimHebrewToLine(text: string): string {
 export const HelloWorld: React.FC<z.infer<typeof myCompSchema>> = ({
   koreanText,
   hebrewText,
+  englishText = '',
+  language = 'ko',
   videoFileName = '',
   audioFileName = 'narration.mp3',
   subtitlesJson = '',
 }) => {
+  useFrankRuhlLibre();
   const { width, height, fps } = useVideoConfig();
   const frame = useCurrentFrame();
   const currentSec = frame / fps;
@@ -86,8 +111,14 @@ export const HelloWorld: React.FC<z.infer<typeof myCompSchema>> = ({
   const passedSubs = subs.filter((s) => currentSec >= s.startSec);
   const prevSub = passedSubs.length > 0 ? passedSubs[passedSubs.length - 1] : undefined;
 
+  // 언어별 자막 텍스트 결정
+  const isEn = language === 'en';
   // 타이밍 없으면 전체 텍스트 표시 (fallback)
-  const displayKo = currentSub ? currentSub.text : (subs.length === 0 ? koreanText : '');
+  const displayNarration = currentSub
+    ? currentSub.text
+    : (subs.length === 0 ? (isEn ? englishText : koreanText) : '');
+  // 영어/한국어 모두 동일 자막 필드(text) 사용 — 생성 시 언어에 맞는 텍스트로 저장됨
+  const displayKo = displayNarration;
   // 자막 있을 때: 현재 구간 heText → 갭이면 직전 heText → 없으면 빈 문자열
   // 자막 없을 때: static hebrewText
   const rawHe = subs.length === 0
@@ -132,6 +163,23 @@ export const HelloWorld: React.FC<z.infer<typeof myCompSchema>> = ({
         />
       )}
 
+      {/* 왼쪽 하단 로고 아이콘 — 항상 표시 (번들 포함) */}
+      <Img
+        src={logoSrc}
+        style={{
+          position: 'absolute',
+          bottom: 28,
+          left: 28,
+          width: 220,
+          height: 124,
+          objectFit: 'cover',
+          borderRadius: 12,
+          opacity: 0.90,
+          zIndex: 10,
+          boxShadow: '0 4px 20px rgba(0,0,0,0.70)',
+        }}
+      />
+
       {/* ── 자막 영역 — 절대 위치로 고정 (한국어 유무와 무관) ── */}
       <AbsoluteFill style={{ position: 'relative' }}>
 
@@ -150,12 +198,13 @@ export const HelloWorld: React.FC<z.infer<typeof myCompSchema>> = ({
           >
             <span
               style={{
-                color: '#F5C842',
-                fontSize: 84,
+                fontFamily: '"Frank Ruhl Libre", serif',
+                color: '#00E676',
+                fontSize: 96,
                 fontWeight: 900,
-                textShadow: '0 2px 12px rgba(0,0,0,0.95), 0 0 30px rgba(0,0,0,0.7)',
+                textShadow: '0 2px 8px rgba(0,0,0,0.90)',
                 lineHeight: 1.45,
-                letterSpacing: '0.03em',
+                letterSpacing: '0.01em',
                 whiteSpace: 'nowrap',
                 display: 'block',
               }}
@@ -165,23 +214,24 @@ export const HelloWorld: React.FC<z.infer<typeof myCompSchema>> = ({
           </div>
         ) : null}
 
-        {/* 한국어 — 화면 맨 하단 고정 (bottom: 0) */}
+        {/* 한국어 / 영어 자막 — 하단에서 60px 위로 */}
         {displayKo ? (
           <div
             style={{
               position: 'absolute',
-              bottom: 0,
+              bottom: 60,
               left: 0,
               right: 0,
-              padding: '12px 80px 36px',
+              padding: '0 80px',
               textAlign: 'center',
             }}
           >
             <span
               style={{
                 color: '#ffffff',
-                fontSize: 52,
+                fontSize: isEn ? 56 : 52,
                 fontWeight: 700,
+                fontFamily: isEn ? '"Arial", "Helvetica Neue", sans-serif' : undefined,
                 textShadow: '0 2px 10px rgba(0,0,0,0.95), 0 0 30px rgba(0,0,0,0.7)',
                 lineHeight: 1.5,
                 whiteSpace: 'nowrap',
