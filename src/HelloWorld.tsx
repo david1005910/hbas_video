@@ -58,16 +58,23 @@ function isVideoFile(name: string): boolean {
   return /\.(mp4|webm|mov|avi)$/i.test(name);
 }
 
-/** Sefaria 편집 주석·단락 기호·HTML 엔티티 제거 */
+/** Sefaria 편집 주석·단락 기호·HTML 엔티티·유니코드 제어문자 제거 */
 function cleanHebrew(text: string): string {
   return text
-    .replace(/\u202B/g, '')
+    // 유니코드 양방향·방향 제어 문자 (□로 보이는 원인)
+    .replace(/[\u200B-\u200F\u202A-\u202E\u2066-\u2069\uFEFF]/g, '')
+    // Sefaria 편집 주석 *(...)
     .replace(/\*([\(（][^)）]*[\)）])/g, '')
+    // 괄호 안 히브리어 주석
     .replace(/\([\u0591-\u05FF\s,]+\)/g, '')
+    // {ס}, {פ} 단락 기호
     .replace(/\{[^\}]*\}/g, '')
+    // HTML 엔티티
     .replace(/&nbsp;/g, ' ')
-    .replace(/&[a-zA-Z]+;/g, '')
+    .replace(/&[a-zA-Z0-9#]+;/g, '')
+    // HTML 태그
     .replace(/<[^>]*>/g, '')
+    // 연속 공백
     .replace(/\s{2,}/g, ' ')
     .trim();
 }
