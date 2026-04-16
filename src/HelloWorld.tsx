@@ -63,6 +63,8 @@ function cleanHebrew(text: string): string {
   return text
     // 유니코드 양방향·방향 제어 문자 (□로 보이는 원인)
     .replace(/[\u200B-\u200F\u202A-\u202E\u2066-\u2069\uFEFF]/g, '')
+    // 비표준 유니코드 공백 문자 → 일반 공백으로 정규화 (□로 렌더링되는 원인)
+    .replace(/[\u00A0\u1680\u2000-\u200A\u202F\u205F\u3000]/g, ' ')
     // Sefaria 편집 주석 *(...)
     .replace(/\*([\(（][^)）]*[\)）])/g, '')
     // 괄호 안 히브리어 주석
@@ -167,17 +169,22 @@ export const HelloWorld: React.FC<z.infer<typeof myCompSchema>> = ({
 
   const displayKo = (() => {
     if (subs.length === 0) {
-      // 자막 없음 → static 텍스트 표시
-      return isEn ? englishText : koreanText;
+      // 자막 없음 → static 텍스트 표시 (최대 한 줄 분량만)
+      const src = isEn ? englishText : koreanText;
+      if (!src) return '';
+      // 첫 LINE_MAX 자 이내 첫 줄만 표시 (긴 패시지 전체 표시 방지)
+      const firstLine = splitToLines(src, LINE_MAX)[0] ?? '';
+      return firstLine;
     }
     if (isEn) {
       // 영어 모드: enText 우선, fallback text, 갭이면 직전 enText
       if (currentSub !== undefined) return currentSub.enText ?? currentSub.text;
       return prevSub ? (prevSub.enText ?? prevSub.text ?? '') : '';
     } else {
-      // 한국어 모드: text 사용, text가 모두 비어 있으면 static koreanText 사용
-      if (!hasKoSubs) return koreanText;
-      if (currentSub !== undefined) return currentSub.text || koreanText;
+      // 한국어 모드: text 사용
+      // text가 모두 비어있어도 static koreanText 대신 '' 반환 (긴 패시지 오버플로우 방지)
+      if (!hasKoSubs) return '';
+      if (currentSub !== undefined) return currentSub.text || '';
       // 갭 구간: 직전 자막 sticky 표시
       return prevSub?.text ?? '';
     }
@@ -278,7 +285,7 @@ export const HelloWorld: React.FC<z.infer<typeof myCompSchema>> = ({
 
         {/* 한국어 / 영어 자막 — 하단에서 60px 위로, 30자 기준 자동 줄 분할. showSubtitle=false 이면 숨김 */}
         {showSubtitle && displayKo ? (() => {
-          const lines = splitToLines(displayKo, LINE_MAX);
+          const lines = splitToLines(displayKo, LINE_MAX).slice(0, 2);
           const fontSize = isEn ? 56 : 52;
           // 줄 수에 따라 bottom 위치 조정 (줄이 많을수록 위로)
           const lineHeight = fontSize * 1.5;
