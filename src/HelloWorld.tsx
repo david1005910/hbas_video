@@ -43,6 +43,7 @@ export const myCompSchema = z.object({
 interface SubEntry {
   text: string;       // 한국어 자막
   heText?: string;    // 히브리어 자막 (구절 기반일 때 포함)
+  enText?: string;    // 영어 자막
   startSec: number;
   endSec: number;
 }
@@ -115,9 +116,8 @@ export const HelloWorld: React.FC<z.infer<typeof myCompSchema>> = ({
   const isEn = language === 'en';
   // 타이밍 없으면 전체 텍스트 표시 (fallback)
   const displayNarration = currentSub
-    ? currentSub.text
+    ? (isEn ? (currentSub.enText ?? currentSub.text) : currentSub.text)
     : (subs.length === 0 ? (isEn ? englishText : koreanText) : '');
-  // 영어/한국어 모두 동일 자막 필드(text) 사용 — 생성 시 언어에 맞는 텍스트로 저장됨
   const displayKo = displayNarration;
   // 자막 있을 때: 현재 구간 heText → 갭이면 직전 heText → 없으면 빈 문자열
   // 자막 없을 때: static hebrewText
@@ -168,7 +168,7 @@ export const HelloWorld: React.FC<z.infer<typeof myCompSchema>> = ({
         src={logoSrc}
         style={{
           position: 'absolute',
-          bottom: 28,
+          top: 28,
           left: 28,
           width: 220,
           height: 124,
