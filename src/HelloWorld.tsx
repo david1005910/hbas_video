@@ -71,7 +71,28 @@ function trimHebrewToLine(text: string): string {
     result = result ? `${result} ${word}` : word;
     count += wLen;
   }
-  return result || words[0]; // 첫 단어가 30자 초과해도 최소 1단어는 표시
+  return result || words[0];
+}
+
+/** 텍스트를 maxChars 이내 단어 경계로 줄 분할 (영어·한국어 공통) */
+const LINE_MAX = 30;
+function splitToLines(text: string, maxChars = LINE_MAX): string[] {
+  if (!text) return [];
+  const words = text.split(/\s+/).filter(Boolean);
+  const lines: string[] = [];
+  let current = '';
+  for (const word of words) {
+    if (!current) {
+      current = word;
+    } else if (current.length + 1 + word.length <= maxChars) {
+      current += ' ' + word;
+    } else {
+      lines.push(current);
+      current = word;
+    }
+  }
+  if (current) lines.push(current);
+  return lines.length > 0 ? lines : [text];
 }
 
 export const HelloWorld: React.FC<z.infer<typeof myCompSchema>> = ({
@@ -214,34 +235,49 @@ export const HelloWorld: React.FC<z.infer<typeof myCompSchema>> = ({
           </div>
         ) : null}
 
-        {/* 한국어 / 영어 자막 — 하단에서 60px 위로 */}
-        {displayKo ? (
-          <div
-            style={{
-              position: 'absolute',
-              bottom: 60,
-              left: 0,
-              right: 0,
-              padding: '0 80px',
-              textAlign: 'center',
-            }}
-          >
-            <span
+        {/* 한국어 / 영어 자막 — 하단에서 60px 위로, 30자 기준 자동 줄 분할 */}
+        {displayKo ? (() => {
+          const lines = splitToLines(displayKo, LINE_MAX);
+          const fontSize = isEn ? 56 : 52;
+          // 줄 수에 따라 bottom 위치 조정 (줄이 많을수록 위로)
+          const lineHeight = fontSize * 1.5;
+          const blockHeight = lines.length * lineHeight;
+          const bottomPos = 60;
+          return (
+            <div
               style={{
-                color: '#ffffff',
-                fontSize: isEn ? 56 : 52,
-                fontWeight: 700,
-                fontFamily: isEn ? '"Arial", "Helvetica Neue", sans-serif' : undefined,
-                textShadow: '0 2px 10px rgba(0,0,0,0.95), 0 0 30px rgba(0,0,0,0.7)',
-                lineHeight: 1.5,
-                whiteSpace: 'nowrap',
-                display: 'block',
+                position: 'absolute',
+                bottom: bottomPos,
+                left: 0,
+                right: 0,
+                padding: '0 80px',
+                textAlign: 'center',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: 0,
               }}
             >
-              {displayKo}
-            </span>
-          </div>
-        ) : null}
+              {lines.map((line, idx) => (
+                <span
+                  key={idx}
+                  style={{
+                    color: '#ffffff',
+                    fontSize,
+                    fontWeight: 700,
+                    fontFamily: isEn ? '"Arial", "Helvetica Neue", sans-serif' : undefined,
+                    textShadow: '0 2px 10px rgba(0,0,0,0.95), 0 0 30px rgba(0,0,0,0.7)',
+                    lineHeight: 1.5,
+                    whiteSpace: 'nowrap',
+                    display: 'block',
+                  }}
+                >
+                  {line}
+                </span>
+              ))}
+            </div>
+          );
+        })() : null}
 
       </AbsoluteFill>
     </AbsoluteFill>
