@@ -135,19 +135,34 @@ export const HelloWorld: React.FC<z.infer<typeof myCompSchema>> = ({
 
   // 언어별 자막 텍스트 결정
   const isEn = language === 'en';
-  // 타이밍 없으면 전체 텍스트 표시 (fallback)
-  const displayNarration = currentSub
-    ? (isEn ? (currentSub.enText ?? currentSub.text) : currentSub.text)
-    : (subs.length === 0 ? (isEn ? englishText : koreanText) : '');
-  const displayKo = displayNarration;
-  // 자막 있을 때: 현재 구간 heText → 갭이면 직전 heText → 없으면 빈 문자열
-  // 자막 없을 때: static hebrewText
+
+  // 한국어 자막이 실제로 있는지 확인 (영어 TTS로 생성된 경우 text가 비어 있을 수 있음)
+  const hasKoSubs = subs.some((s) => s.text && s.text.trim() !== '');
+
+  const displayKo = (() => {
+    if (subs.length === 0) {
+      // 자막 없음 → static 텍스트 표시
+      return isEn ? englishText : koreanText;
+    }
+    if (isEn) {
+      // 영어 모드: enText 우선, fallback text, 갭이면 직전 enText
+      if (currentSub !== undefined) return currentSub.enText ?? currentSub.text;
+      return prevSub ? (prevSub.enText ?? prevSub.text ?? '') : '';
+    } else {
+      // 한국어 모드: text 사용, text가 모두 비어 있으면 static koreanText 사용
+      if (!hasKoSubs) return koreanText;
+      if (currentSub !== undefined) return currentSub.text || koreanText;
+      // 갭 구간: 직전 자막 sticky 표시
+      return prevSub?.text ?? '';
+    }
+  })();
+
+  // 히브리어: 현재 구간 heText → 갭이면 직전 heText → 없으면 static
   const rawHe = subs.length === 0
     ? hebrewText
     : currentSub !== undefined
       ? (currentSub.heText ?? '')
       : (prevSub?.heText ?? '');
-  // 30자 초과 시 단어 경계에서 잘라냄 (구 데이터 호환)
   const displayHe = trimHebrewToLine(rawHe);
 
   return (
