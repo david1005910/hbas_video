@@ -38,6 +38,8 @@ export const myCompSchema = z.object({
   videoFileName: z.string().optional().default(''),
   audioFileName: z.string().optional().default('narration.mp3'),
   subtitlesJson: z.string().optional().default(''),
+  showSubtitle: z.boolean().optional().default(true),
+  showNarration: z.boolean().optional().default(true),
 });
 
 interface SubEntry {
@@ -56,13 +58,28 @@ function isVideoFile(name: string): boolean {
   return /\.(mp4|webm|mov|avi)$/i.test(name);
 }
 
+/** Sefaria 편집 주석·단락 기호·HTML 엔티티 제거 */
+function cleanHebrew(text: string): string {
+  return text
+    .replace(/\u202B/g, '')
+    .replace(/\*([\(（][^)）]*[\)）])/g, '')
+    .replace(/\([\u0591-\u05FF\s,]+\)/g, '')
+    .replace(/\{[^\}]*\}/g, '')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&[a-zA-Z]+;/g, '')
+    .replace(/<[^>]*>/g, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+}
+
 /** 니쿠드·칸틸레이션 제거 후 자음 수 기준으로 한 줄 최대 30자에서 단어 경계로 자름 */
 const HE_DISPLAY_MAX = 30;
 function trimHebrewToLine(text: string): string {
-  if (!text) return text;
+  const cleaned = cleanHebrew(text);
+  if (!cleaned) return cleaned;
   const stripNiqqud = (t: string) => t.replace(/[\u0591-\u05C7]/g, '');
-  if (stripNiqqud(text).replace(/\s/g, '').length <= HE_DISPLAY_MAX) return text;
-  const words = text.split(/\s+/);
+  if (stripNiqqud(cleaned).replace(/\s/g, '').length <= HE_DISPLAY_MAX) return cleaned;
+  const words = cleaned.split(/\s+/);
   let result = '';
   let count = 0;
   for (const word of words) {
@@ -103,6 +120,8 @@ export const HelloWorld: React.FC<z.infer<typeof myCompSchema>> = ({
   videoFileName = '',
   audioFileName = 'narration.mp3',
   subtitlesJson = '',
+  showSubtitle = true,
+  showNarration = true,
 }) => {
   useFrankRuhlLibre();
   const { width, height, fps } = useVideoConfig();
@@ -167,8 +186,8 @@ export const HelloWorld: React.FC<z.infer<typeof myCompSchema>> = ({
 
   return (
     <AbsoluteFill style={{ backgroundColor: '#000', width, height }}>
-      {/* 나레이션 오디오 */}
-      {hasAudio && (
+      {/* 나레이션 오디오 — showNarration=false 이면 무음 */}
+      {hasAudio && showNarration && (
         <Audio
           src={staticFile(audioFileName)}
           loop={false}
@@ -219,8 +238,8 @@ export const HelloWorld: React.FC<z.infer<typeof myCompSchema>> = ({
       {/* ── 자막 영역 — 절대 위치로 고정 (한국어 유무와 무관) ── */}
       <AbsoluteFill style={{ position: 'relative' }}>
 
-        {/* 히브리어 — bottom 150px 고정 (한국어 유무와 무관하게 항상 같은 위치) */}
-        {displayHe ? (
+        {/* 히브리어 — bottom 150px 고정. showSubtitle=false 이면 숨김 */}
+        {showSubtitle && displayHe ? (
           <div
             style={{
               position: 'absolute',
@@ -250,8 +269,8 @@ export const HelloWorld: React.FC<z.infer<typeof myCompSchema>> = ({
           </div>
         ) : null}
 
-        {/* 한국어 / 영어 자막 — 하단에서 60px 위로, 30자 기준 자동 줄 분할 */}
-        {displayKo ? (() => {
+        {/* 한국어 / 영어 자막 — 하단에서 60px 위로, 30자 기준 자동 줄 분할. showSubtitle=false 이면 숨김 */}
+        {showSubtitle && displayKo ? (() => {
           const lines = splitToLines(displayKo, LINE_MAX);
           const fontSize = isEn ? 56 : 52;
           // 줄 수에 따라 bottom 위치 조정 (줄이 많을수록 위로)
