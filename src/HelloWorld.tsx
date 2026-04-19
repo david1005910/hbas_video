@@ -40,6 +40,8 @@ export const myCompSchema = z.object({
   subtitlesJson: z.string().optional().default(''),
   showSubtitle: z.boolean().optional().default(true),
   showNarration: z.boolean().optional().default(true),
+  bgmFileName: z.string().optional().default(''),
+  bgmVolume: z.number().optional().default(0.15),
 });
 
 interface SubEntry {
@@ -117,6 +119,8 @@ export const HelloWorld: React.FC<z.infer<typeof myCompSchema>> = ({
   subtitlesJson = '',
   showSubtitle = true,
   showNarration = true,
+  bgmFileName = '',
+  bgmVolume = 0.15,
 }) => {
   useFrankRuhlLibre();
   const { width, height, fps } = useVideoConfig();
@@ -125,9 +129,11 @@ export const HelloWorld: React.FC<z.infer<typeof myCompSchema>> = ({
 
   const [mediaError, setMediaError] = useState(false);
   const [audioError, setAudioError] = useState(false);
+  const [bgmError, setBgmError] = useState(false);
 
   const fileName = typeof videoFileName === 'string' ? videoFileName.trim() : '';
   const hasAudio = !audioError && typeof audioFileName === 'string' && audioFileName.trim() !== '';
+  const hasBgm = !bgmError && typeof bgmFileName === 'string' && bgmFileName.trim() !== '';
   const hasMedia = !mediaError && fileName !== '';
   const showImage = hasMedia && isImageFile(fileName);
   const showVideo = hasMedia && isVideoFile(fileName);
@@ -192,6 +198,16 @@ export const HelloWorld: React.FC<z.infer<typeof myCompSchema>> = ({
           src={staticFile(audioFileName)}
           loop={false}
           onError={() => setAudioError(true)}
+        />
+      )}
+
+      {/* BGM 오디오 — bgmFileName 있을 때만, 음량은 bgmVolume(0~1) */}
+      {hasBgm && (
+        <Audio
+          src={staticFile(bgmFileName)}
+          loop={true}
+          volume={bgmVolume}
+          onError={() => setBgmError(true)}
         />
       )}
 
