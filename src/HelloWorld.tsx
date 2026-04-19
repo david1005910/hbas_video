@@ -218,13 +218,13 @@ export const HelloWorld: React.FC<z.infer<typeof myCompSchema>> = ({
         />
       )}
 
-      {/* 왼쪽 하단 로고 아이콘 — 항상 표시 (번들 포함) */}
+      {/* 오른쪽 상단 로고 아이콘 — 항상 표시 (번들 포함) */}
       <Img
         src={logoSrc}
         style={{
           position: 'absolute',
           top: 28,
-          left: 28,
+          right: 28,
           width: 220,
           height: 124,
           objectFit: 'cover',
@@ -241,7 +241,7 @@ export const HelloWorld: React.FC<z.infer<typeof myCompSchema>> = ({
         {/* 히브리어 — bottom 165px 고정, 절 단위 전체 텍스트 표시. showSubtitle=false 이면 숨김 */}
         {showSubtitle && displayHe ? (() => {
           const heLines = splitToLines(displayHe, HE_DISPLAY_MAX).slice(0, 2);
-          const heFontSize = 44;
+          const heFontSize = 58;
           const heLineHeight = heFontSize * 1.5;
           const heBlockHeight = heLines.length * heLineHeight;
           const heBottom = 130;
