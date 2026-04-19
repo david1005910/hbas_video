@@ -83,27 +83,11 @@ function cleanHebrew(text: string): string {
     .trim();
 }
 
-/** 니쿠드·칸틸레이션 제거 후 자음 수 기준으로 한 줄 최대 30자에서 단어 경계로 자름 */
-const HE_DISPLAY_MAX = 30;
-function trimHebrewToLine(text: string): string {
-  const cleaned = cleanHebrew(text);
-  if (!cleaned) return cleaned;
-  const stripNiqqud = (t: string) => t.replace(/[\u0591-\u05C7]/g, '');
-  if (stripNiqqud(cleaned).replace(/\s/g, '').length <= HE_DISPLAY_MAX) return cleaned;
-  const words = cleaned.split(/\s+/);
-  let result = '';
-  let count = 0;
-  for (const word of words) {
-    const wLen = stripNiqqud(word).length;
-    if (count > 0 && count + wLen > HE_DISPLAY_MAX) break;
-    result = result ? `${result} ${word}` : word;
-    count += wLen;
-  }
-  return result || words[0];
-}
+/** 한 줄 최대 글자 수 (화면 표시 기준) */
+const HE_DISPLAY_MAX = 80;  // 절 단위 전체 텍스트 한 줄 표시 (히브리어 1절 평균 40-70자)
+const LINE_MAX = 30;         // 한국어·영어 글자 수 기준
 
-/** 텍스트를 maxChars 이내 단어 경계로 줄 분할 (영어·한국어 공통) */
-const LINE_MAX = 30;
+/** 텍스트를 maxChars 이내 단어 경계로 줄 분할 (영어·한국어·히브리어 공통) */
 function splitToLines(text: string, maxChars = LINE_MAX): string[] {
   if (!text) return [];
   const words = text.split(/\s+/).filter(Boolean);
@@ -198,7 +182,7 @@ export const HelloWorld: React.FC<z.infer<typeof myCompSchema>> = ({
     : currentSub !== undefined
       ? (currentSub.heText ?? '')
       : (prevSub?.heText ?? '');
-  const displayHe = trimHebrewToLine(rawHe);
+  const displayHe = cleanHebrew(rawHe);
 
   return (
     <AbsoluteFill style={{ backgroundColor: '#000', width, height }}>
@@ -254,41 +238,55 @@ export const HelloWorld: React.FC<z.infer<typeof myCompSchema>> = ({
       {/* ── 자막 영역 — 절대 위치로 고정 (한국어 유무와 무관) ── */}
       <AbsoluteFill style={{ position: 'relative' }}>
 
-        {/* 히브리어 — bottom 150px 고정. showSubtitle=false 이면 숨김 */}
-        {showSubtitle && displayHe ? (
-          <div
-            style={{
-              position: 'absolute',
-              bottom: 165,
-              left: 0,
-              right: 0,
-              padding: '0 80px',
-              textAlign: 'center',
-              direction: 'rtl',
-            }}
-          >
-            <span
+        {/* 히브리어 — bottom 165px 고정, 절 단위 전체 텍스트 표시. showSubtitle=false 이면 숨김 */}
+        {showSubtitle && displayHe ? (() => {
+          const heLines = splitToLines(displayHe, HE_DISPLAY_MAX).slice(0, 2);
+          const heFontSize = 44;
+          const heLineHeight = heFontSize * 1.5;
+          const heBlockHeight = heLines.length * heLineHeight;
+          const heBottom = 130;
+          return (
+            <div
               style={{
-                fontFamily: '"Frank Ruhl Libre", serif',
-                color: '#00E676',
-                fontSize: 96,
-                fontWeight: 900,
-                textShadow: '0 2px 8px rgba(0,0,0,0.90)',
-                lineHeight: 1.45,
-                letterSpacing: '0.01em',
-                whiteSpace: 'nowrap',
-                display: 'block',
+                position: 'absolute',
+                bottom: heBottom,
+                left: 0,
+                right: 0,
+                padding: '0 80px',
+                textAlign: 'center',
+                direction: 'rtl',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: 0,
               }}
             >
-              {displayHe}
-            </span>
-          </div>
-        ) : null}
+              {heLines.map((line, idx) => (
+                <span
+                  key={idx}
+                  style={{
+                    fontFamily: '"Frank Ruhl Libre", serif',
+                    color: '#00E676',
+                    fontSize: heFontSize,
+                    fontWeight: 900,
+                    textShadow: '0 2px 8px rgba(0,0,0,0.90)',
+                    lineHeight: 1.45,
+                    letterSpacing: '0.01em',
+                    whiteSpace: 'nowrap',
+                    display: 'block',
+                  }}
+                >
+                  {line}
+                </span>
+              ))}
+            </div>
+          );
+        })() : null}
 
-        {/* 한국어 / 영어 자막 — 하단에서 60px 위로, 30자 기준 자동 줄 분할. showSubtitle=false 이면 숨김 */}
+        {/* 한국어 / 영어 자막 — 하단에서 60px 위로, 40자 기준 자동 줄 분할. showSubtitle=false 이면 숨김 */}
         {showSubtitle && displayKo ? (() => {
-          const lines = splitToLines(displayKo, LINE_MAX).slice(0, 2);
-          const fontSize = isEn ? 56 : 52;
+          const lines = splitToLines(displayKo, LINE_MAX).slice(0, 1);
+          const fontSize = isEn ? 58 : 54;
           // 줄 수에 따라 bottom 위치 조정 (줄이 많을수록 위로)
           const lineHeight = fontSize * 1.5;
           const blockHeight = lines.length * lineHeight;
