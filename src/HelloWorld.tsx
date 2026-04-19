@@ -267,7 +267,7 @@ export const HelloWorld: React.FC<z.infer<typeof myCompSchema>> = ({
                   key={idx}
                   style={{
                     fontFamily: '"Frank Ruhl Libre", serif',
-                    color: '#00E676',
+                    color: '#FFD700',
                     fontSize: heFontSize,
                     fontWeight: 900,
                     textShadow: '0 2px 8px rgba(0,0,0,0.90)',
