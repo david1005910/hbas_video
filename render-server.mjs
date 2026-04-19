@@ -6,12 +6,15 @@
  */
 import { createServer } from "http";
 import { exec } from "child_process";
-import { existsSync, readFileSync, unlinkSync } from "fs";
+import { existsSync, readFileSync, unlinkSync, mkdirSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const OUTPUT_PATH = join(__dirname, "out.mp4");
+// out/ 디렉터리는 호스트와 볼륨 마운트됨 → 렌더 완료 후 Finder에서 바로 확인 가능
+const OUT_DIR = join(__dirname, "out");
+mkdirSync(OUT_DIR, { recursive: true });
+const OUTPUT_PATH = join(OUT_DIR, "HebrewBibleAnimationStudio.mp4");
 const DATA_PATH = join(__dirname, "public", "data.json");
 
 let renderState = { status: "idle", error: null }; // idle | rendering | done | error
@@ -50,7 +53,7 @@ createServer((req, res) => {
 
     renderState = { status: "rendering", error: null };
     const cmd = [
-      "npx remotion render HelloWorld",
+      "npx remotion render HebrewBibleAnimationStudio",
       `"${OUTPUT_PATH}"`,
       `--props="${DATA_PATH}"`,
       "--audio-codec=mp3",
