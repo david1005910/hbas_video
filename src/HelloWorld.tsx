@@ -244,7 +244,7 @@ export const HelloWorld: React.FC<z.infer<typeof myCompSchema>> = ({
           const heFontSize = 72;
           const heLineHeight = heFontSize * 1.5;
           const heBlockHeight = heLines.length * heLineHeight;
-          const heBottom = 200;
+          const heBottom = 180;
           return (
             <div
               style={{
