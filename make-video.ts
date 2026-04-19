@@ -17,7 +17,7 @@ async function startAutomation() {
 
     console.log('🎬 Remotion 렌더링 시작...');
     execSync(
-      `npx remotion render HelloWorld out.mp4 --props=./public/data.json --audio-codec=mp3`,
+      `npx remotion render HebrewBibleAnimationStudio out.mp4 --props=./public/data.json --audio-codec=mp3`,
       { stdio: 'inherit' }
     );
 

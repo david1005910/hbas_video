@@ -13,7 +13,7 @@ npx remotion render  # Render the video to file
 
 Render a specific composition with props:
 ```bash
-npx remotion render HelloWorld out.mp4 --props=./public/data.json --audio-codec=mp3
+npx remotion render HebrewBibleAnimationStudio out.mp4 --props=./public/data.json --audio-codec=mp3
 ```
 
 Run the automation script (writes data.json + renders):
