@@ -253,7 +253,7 @@ export const HelloWorld: React.FC<z.infer<typeof myCompSchema>> = ({
                 left: 0,
                 right: 0,
                 paddingLeft: 80,
-                paddingRight: 160,
+                paddingRight: 100,
                 textAlign: 'right',
                 direction: 'rtl',
                 display: 'flex',
