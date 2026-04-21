@@ -257,10 +257,10 @@ export const HelloWorld: React.FC<z.infer<typeof myCompSchema>> = ({
         {/* 히브리어 — bottom 165px 고정, 절 단위 전체 텍스트 표시. showSubtitle=false 이면 숨김 */}
         {showSubtitle && displayHe ? (() => {
           const heLines = splitToLines(displayHe, HE_DISPLAY_MAX).slice(0, 2);
-          const heFontSize = 72;
+          const heFontSize = 88;
           const heLineHeight = heFontSize * 1.5;
           const heBlockHeight = heLines.length * heLineHeight;
-          const heBottom = 180;
+          const heBottom = 260;
           return (
             <div
               style={{
@@ -302,11 +302,8 @@ export const HelloWorld: React.FC<z.infer<typeof myCompSchema>> = ({
 
         {/* 한국어 / 영어 자막 — 하단에서 60px 위로, 40자 기준 자동 줄 분할. showSubtitle=false 이면 숨김 */}
         {showSubtitle && displayKo ? (() => {
-          const lines = splitToLines(displayKo, LINE_MAX).slice(0, 1);
-          const fontSize = isEn ? 58 : 54;
-          // 줄 수에 따라 bottom 위치 조정 (줄이 많을수록 위로)
-          const lineHeight = fontSize * 1.5;
-          const blockHeight = lines.length * lineHeight;
+          const lines = splitToLines(displayKo, LINE_MAX).slice(0, 2);
+          const fontSize = isEn ? 70 : 66;
           const bottomPos = 60;
           return (
             <div
