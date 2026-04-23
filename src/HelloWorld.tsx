@@ -260,7 +260,7 @@ export const HelloWorld: React.FC<z.infer<typeof myCompSchema>> = ({
           const heFontSize = 88;
           const heLineHeight = heFontSize * 1.5;
           const heBlockHeight = heLines.length * heLineHeight;
-          const heBottom = 260;
+          const heBottom = 200;
           return (
             <div
               style={{
@@ -283,7 +283,7 @@ export const HelloWorld: React.FC<z.infer<typeof myCompSchema>> = ({
                   key={idx}
                   style={{
                     fontFamily: '"Frank Ruhl Libre", serif',
-                    color: '#FFD700',
+                    color: '#00E676',
                     fontSize: heFontSize,
                     fontWeight: 900,
                     textShadow: '0 2px 8px rgba(0,0,0,0.90)',
